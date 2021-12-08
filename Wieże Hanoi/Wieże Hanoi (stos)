@@ -1,0 +1,441 @@
+#include <iostream>
+#include <time.h>
+#include <windows.h>
+#include <vector>
+#include <cstdlib>
+using namespace std;
+
+const unsigned int stackSize = 10;    					// ilosc krazkow;
+unsigned int steps = 1;                                 //zmienna przechowujaca ilosc krokow
+
+int BrelokLosowy()    //funkcja losowania liczby calkowitej
+{
+	int LosLiczba;
+	LosLiczba=rand()%100+0;
+	return LosLiczba;
+}
+
+string KluczLosowy ()  //funkcja losowania klucza
+{
+	string s;
+	for (int i = 0; i < 10;i++)
+	{
+		string los;
+		if (i%2==0)
+		los = (( rand() %( 'z' - 'a' ) ) + 'a' );
+		else
+		los = (( rand() %( '0' - '9' ) ) + '0' );
+		s = s+los;
+	}
+	return s;
+}
+
+class Stos       //deklaracja struktury stosu
+{
+	private:
+		struct SNode            //deklaracja struktury pojedynczego elementu stosu
+		{
+			string klucz;
+			int brelok;
+			SNode *next;      //wskaznik do nastepnego elementu
+		};
+		SNode *top;             // wszkaznik szczytu stosu
+		          
+		public:
+		Stos ()             //konstruktor
+		{
+			top = NULL;
+		}
+		~Stos();             			//dekonstruktor
+		vector <SNode*> reverStack;   	//wektor pomocniczy prechowyjacu elementy stosu ( w celu wyswietlenia)
+		string stackName;            	//nazwa stosu
+		void push (string, int);        // deklaracja funkcji push (2 argumenty)
+		void push (string);  			// deklaracja funkcji push (1 argument - klucz)
+		void push (int);   				// deklaracja funkcji push (1 argument - brelok)
+		void push ();     				// deklaracja funkcji push (bez argumentow)
+		void pop (string &, int&);    	// deklaracja funkcji pop
+		bool empty ();  				// deklaracja funkcji empty
+		bool full();      				// deklaracja funkcji full
+		int size();        				// deklaracja funkcji size
+		void displayTop();    			//odczyt elementu ze stosu
+		void display();        			//wyswietl brelok
+		void displayEverything();    	//wyswietl wszystko
+};
+
+Stos::~Stos()
+{
+	SNode *tempPtr = NULL, *nextNode = NULL;
+	tempPtr = top;
+	while (tempPtr!=NULL)
+	{
+		nextNode = tempPtr->next;
+		delete tempPtr;
+		tempPtr = nextNode;
+	}
+}
+
+void Stos::displayEverything()
+{
+	
+    if (empty())
+	{
+		cout<<"EMPTY";
+	}
+	else
+    {
+        SNode *tempPtr;
+        tempPtr = top;
+        while (tempPtr)
+        {
+            reverStack.push_back(tempPtr);
+            //cout<<tempPtr->brelok<<" ";
+            tempPtr = tempPtr->next;
+        }
+        for (int i=0; i<reverStack.size(); i++)
+        {
+            cout<<"Klucz: "<<reverStack[i]->klucz<<" Brelok: "<<reverStack[i]->brelok<<endl;
+        }
+        reverStack.clear();
+    }
+}
+
+void Stos::display()
+{
+    if (empty())
+	{
+		cout<<"EMPTY";
+	}
+	else
+    {
+        SNode *tempPtr;
+        tempPtr = top;
+        while (tempPtr)
+        {
+            reverStack.push_back(tempPtr);
+            //cout<<tempPtr->brelok<<" ";
+            tempPtr = tempPtr->next;
+        }
+        for (int i=(reverStack.size()-1); i>=0; i--)
+        {
+            cout<<reverStack[i]->brelok<<" ";
+        }
+        reverStack.clear();
+    }
+}
+
+void Stos::displayTop()
+{
+	if (empty())
+	{
+		cout<<"\nStos jest pusty";
+	}
+	else
+	{
+		cout<<"\n Klucz: "<<top->klucz<<" Brelok: "<<top->brelok;
+	}
+}
+//funkcja push() odklada na stosie wartosc argumentu (ow)
+void Stos::push(string s, int num)
+{
+	SNode *newNode = NULL;        
+	newNode = new SNode;
+	newNode->klucz = s;
+	newNode->brelok = num;
+	if (empty())     //sprawdzamy czy jest pusty
+	{
+		top = newNode;
+		newNode->next = NULL;
+	}
+	else            //
+	{
+		newNode->next = top;
+		top = newNode;
+	}
+}
+
+void Stos::push()
+{
+	SNode *newNode = NULL;
+	newNode = new SNode;
+	newNode->klucz = KluczLosowy();
+	newNode->brelok = BrelokLosowy();
+	if (empty())
+	{
+		top = newNode;
+		newNode->next = NULL;
+	}
+	else
+	{
+		newNode->next = top;
+		top = newNode;
+	}
+}
+
+void Stos::push(string s)
+{
+	SNode *newNode = NULL;
+	newNode = new SNode;
+	newNode->klucz = s;
+	newNode->brelok = BrelokLosowy();
+	if (empty())
+	{
+		top = newNode;
+		newNode->next = NULL;
+	}
+	else
+	{
+		newNode->next = top;
+		top = newNode;
+	}
+}
+
+void Stos::push(int num)
+{
+	SNode *newNode = NULL;
+	newNode = new SNode;
+	newNode->klucz = KluczLosowy();
+	newNode->brelok = num;
+	if (empty())
+	{
+		top = newNode;
+		newNode->next = NULL;
+	}
+	else
+	{
+		newNode->next = top;
+		top = newNode;
+	}
+}
+//funkcja pop() zdejmuje element ze szczytu stosu i zapisuje go wartosci do zmiennych podanych jako argument
+void Stos::pop(string &s, int &num)
+{
+	SNode *temp = NULL;
+	if (empty())
+	{
+		cout<<"\nStos jest pusty";
+	}
+	else
+	{
+
+		num = top->brelok; //odczyt string s i int num v main;
+		s = top->klucz;
+		temp = top->next;
+		delete top;
+		top = temp;
+	}
+}
+//funkcja empty () sprawdza czy stos jest pusty
+bool Stos::empty()
+{
+	if (top == NULL)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+//funkcja full () sprawdza czy stos jest pelny
+bool Stos::full()   //zawsze zwraca false
+{
+        return false;
+}
+//funkcja size() funkcja funkcja liczy liczbe elementow i zwraca ich ilosc
+int Stos::size() 
+{
+	SNode *temp = top;
+	if (empty())
+	{
+		return 0;
+	}
+	else
+	{
+		int countNodes=1;
+		while(temp->next!=NULL)
+		{
+			temp = temp->next;
+			countNodes++;
+		}
+		return countNodes;
+	}
+}
+//void check(...) dodano tylko do celow wyswietlania
+void check(Stos &a1, Stos &c1, Stos &b1)
+{
+    if (a1.stackName=="Stos 1"&&b1.stackName=="Stos 2"&&c1.stackName=="Stos 3")
+    {
+        cout<<"\n"<<a1.stackName<<" - "<<a1.size()<<":";
+        a1.display();
+        cout<<"\n"<<b1.stackName<<" - "<<b1.size()<<":";
+        b1.display();
+        cout<<"\n"<<c1.stackName<<" - "<<c1.size()<<":";
+        c1.display();
+    }
+    else if (a1.stackName=="Stos 1"&&c1.stackName=="Stos 2"&&b1.stackName=="Stos 3")
+    {
+        cout<<"\n"<<a1.stackName<<" - "<<a1.size()<<":";
+        a1.display();
+        cout<<"\n"<<c1.stackName<<" - "<<c1.size()<<":";
+        c1.display();
+        cout<<"\n"<<b1.stackName<<" - "<<b1.size()<<":";
+        b1.display();
+    }
+    else if (b1.stackName=="Stos 1"&&a1.stackName=="Stos 2"&&c1.stackName=="Stos 3")
+    {
+        cout<<"\n"<<b1.stackName<<" - "<<b1.size()<<":";
+        b1.display();
+        cout<<"\n"<<a1.stackName<<" - "<<a1.size()<<":";
+        a1.display();
+        cout<<"\n"<<c1.stackName<<" - "<<c1.size()<<":";
+        c1.display();
+    }
+    else if (b1.stackName=="Stos 1"&&c1.stackName=="Stos 2"&&a1.stackName=="Stos 3")
+    {
+        cout<<"\n"<<b1.stackName<<" - "<<b1.size()<<":";
+        b1.display();
+        cout<<"\n"<<c1.stackName<<" - "<<c1.size()<<":";
+        c1.display();
+        cout<<"\n"<<a1.stackName<<" - "<<a1.size()<<":";
+        a1.display();
+    }
+    else if (c1.stackName=="Stos 1"&&a1.stackName=="Stos 2"&&b1.stackName=="Stos 3")
+    {
+        cout<<"\n"<<c1.stackName<<" - "<<c1.size()<<":";
+        c1.display();
+        cout<<"\n"<<a1.stackName<<" - "<<a1.size()<<":";
+        a1.display();
+        cout<<"\n"<<b1.stackName<<" - "<<b1.size()<<":";
+        b1.display();
+    }
+    else if (c1.stackName=="Stos 1"&&b1.stackName=="Stos 2"&&a1.stackName=="Stos 3")
+    {
+        cout<<"\n"<<c1.stackName<<" - "<<c1.size()<<":";
+        c1.display();
+        cout<<"\n"<<b1.stackName<<" - "<<b1.size()<<":";
+        b1.display();
+        cout<<"\n"<<a1.stackName<<" - "<<a1.size()<<":";
+        a1.display();
+    }
+}
+
+//moveTo (...) funkcja przenoszenia ze stosu na stos
+void moveTo(Stos &a1, Stos &c1, Stos &b1)
+{
+    cout<<"\n\n";
+    string klucz2;
+    int brelok2;
+    a1.pop(klucz2, brelok2);
+    c1.push(klucz2, brelok2);
+    check (a1, c1, b1);
+    cout<<"\n\nKroki: "<<steps;
+    cout<<"\n---------------------";
+    steps++;
+}
+//algorytm rekurencyjny "wieza hanoi"
+void hanoi (int n, Stos &a, Stos &b, Stos &c)
+{
+    if (n > 1) hanoi(n - 1, a, c, b);
+    moveTo(a, c, b);
+    if (n > 1) hanoi(n - 1, b, a, c);
+}
+void options()
+{
+	int option;
+	cout<<"\n\n\tCzy dzila przeciazenia?\n1 - push (); 2 - push(string); 3 - push(string, int); 0 - exit;\n";
+    cin>>option;
+    switch (option)
+    {
+    	case 1:
+    		{
+	    		Stos test;
+	    		test.stackName = "\n\ttest 1 - push ()\n";
+	    		cout<<test.stackName;
+	    		for (int i = 0; i < stackSize; i++)
+				{
+					test.push();
+				}
+				cout<<endl;
+	   			test.displayEverything();
+	   			break;
+   			}
+   			
+   		case 2:
+   			{
+	   			Stos test;
+	   			string word;
+	    		test.stackName = "\n\ttest 2 - push (string)\n";
+	    		cout<<test.stackName<<"\nDodaj Klucz\n";
+	    		for (int i = 0; i < stackSize; i++)
+				{
+					cin>>word;
+					test.push(word);
+				}
+				cout<<endl;
+	   			test.displayEverything();
+	   			break;
+   			}
+   			
+   		case 3:
+   			{
+    			Stos test;
+	   			string word;
+	   			int k=9;
+	    		test.stackName = "\n\ttest 3 - push (string, int)\n";
+	    		cout<<test.stackName<<"\nDodaj Klucz\n";
+	    		for (int i = 0; i < stackSize; i++)
+				{
+					cin>>word;
+					test.push(word, k);
+					k--;
+				}
+				cout<<endl;
+	   			test.displayEverything();
+	   			break;
+   			}
+   			
+   		case 0:
+   			{
+	   			exit(0);
+	   			break;
+   			}
+   			
+   		default:
+   			break;
+	}
+	options();
+}
+
+int main ()
+{
+	srand(time(NULL));
+	Stos s1;
+	s1.stackName = "Stos 1";
+	Stos s2;
+	s2.stackName = "Stos 2";
+	Stos s3;
+	s3.stackName = "Stos 3";
+	
+	int k = 9;
+	for (int i = 0; i < stackSize; i++)
+	{
+		s1.push(k);
+		k--;
+	}
+	
+    cout<<"\n"<<s1.stackName<<" - "<<s1.size()<<":";
+    s1.display();
+    cout<<"\n"<<s2.stackName<<" - "<<s2.size()<<":";
+    s2.display();
+    cout<<"\n"<<s3.stackName<<" - "<<s3.size()<<":";
+    s3.display();
+    cout<<"\n\nKroki: 0";
+    
+    hanoi(stackSize, s1, s2, s3);
+    /*czy losuje mi klucze??
+    cout<<endl;
+    s3.displayEverything();    //tak;*/
+	options();
+    return 0;
+
+}
