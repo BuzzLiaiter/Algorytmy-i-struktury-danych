@@ -1,0 +1,546 @@
+#include <iostream>
+#include <cstdlib>
+#include <windows.h>
+#include <string.h>
+#include <ctime>
+
+using namespace std;
+void setColor(int text, int bg)                                   			//funkcja jest odpowiedzialna za kolory
+{
+    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdOut, (WORD)((bg<<4)|text));
+}
+void setTime (SYSTEMTIME pocz, SYSTEMTIME kon)                              //funkcja obliczajaca czas
+{
+    if(kon.wMilliseconds<pocz.wMilliseconds)
+    {
+        kon.wMilliseconds = kon.wMilliseconds+1000;
+        kon.wSecond = kon.wSecond-1;
+    }
+    if (kon.wSecond<pocz.wSecond)
+    {
+        kon.wSecond = kon.wSecond+60;
+        kon.wMinute = kon.wMinute - 1;
+    }
+    if (kon.wMinute<pocz.wMinute)
+    {
+        kon.wMinute = kon.wMinute + 60;
+        kon.wHour = kon.wHour -1;
+    }
+    if (kon.wHour<pocz.wMilliseconds)
+    {
+        kon.wHour = kon.wHour + 24;
+        kon.wDay = kon.wDay - 1;
+    }
+    cout<<"\n\nCzas: "<<kon.wSecond - pocz.wSecond<<" sekund " <<kon.wMilliseconds - pocz.wMilliseconds<<" milisekund\n";
+}
+void displayLab(char **lab, int rozmiar)                					//funkcja wyswietlajaca labirynt
+{
+	cout<<"   ";
+	for (int i = 0; i<rozmiar; i++)
+	{
+		if(i<9)
+		cout<<i<<" ";
+		else
+		cout<<i;
+	}
+	for (int i = 0; i<rozmiar; i++)
+	{   if(i<10)
+		cout<<endl<<i<<" ";
+		else
+		cout<<endl<<i;
+		for (int j = 0; j<rozmiar; j++)
+		{
+			if(lab[i][j] == 'X'||lab[i][j] == 'x')
+			{
+				setColor(1,1);
+				cout<<lab[i][j]<<" ";
+				setColor(7,0);
+			}
+			else if(lab[i][j] == 'O'||lab[i][j] == 'Q'||lab[i][j] == '0')
+			{
+				setColor(15,15);
+				cout<<lab[i][j]<<" ";
+				setColor(7,0);
+			}
+			else if (lab[i][j] == 'o')
+			{
+				setColor(1,15);
+				cout<<lab[i][j]<<" ";
+				setColor(7,0);
+			}
+			else if (lab[i][j] == 'e')
+			{
+				setColor(12,12);
+				cout<<lab[i][j]<<" ";
+				setColor(7,0);
+			}
+			else if (lab[i][j] == 's')
+			{
+				setColor(10,10);
+				cout<<lab[i][j]<<" ";
+				setColor(7,0);
+			}
+		}
+		setColor(0,0);
+		cout<<"|";
+		setColor(7,0);
+	}
+}
+
+
+bool mark (int **tab, int rozmiar)           								//funkcja wyszukuje wszystkie mozliwe drogi
+{
+	bool zmiana = false;
+	int lost;
+	for (int j = 1; j<rozmiar-1; j++)
+	{
+		for( int i = 1; i<rozmiar-1; i++)
+		{
+			if(tab[i][j]<0)    												//jezeli sciana, to sprawdza nastepny
+			{
+				continue;
+			}
+			lost = tab[i][j];
+
+			if (tab[i+1][j]>0)  											//prawo, jezeli nie ma sciany
+			{
+				if (tab[i+1][j]+1<tab[i][j]||tab[i][j]==0)  				//jezeli z tamtej drogi jest krotczej lub aktualna jest nieodwiedzona
+				tab[i][j] = tab[i+1][j]+1;    								//oznacza tutaj odleglosc poprzedniej+1
+			}
+
+			if (tab[i-1][j]>0)     											//lewo
+			{
+				if (tab[i-1][j]+1<tab[i][j]||tab[i][j]==0)
+				tab[i][j] = tab[i-1][j]+1;
+			}
+
+
+			if (tab[i][j+1]>0)    											//dol
+			{
+				if (tab[i][j+1]+1<tab[i][j]||tab[i][j]==0)
+				tab[i][j] = tab[i][j+1]+1;
+			}
+
+			if (tab[i][j-1]>0) 												//gora
+			{
+				if (tab[i][j-1]+1<tab[i][j]||tab[i][j]==0)
+				tab[i][j] = tab[i][j-1]+1;
+			}
+
+
+			if (lost!=tab[i][j]) zmiana = true;	 							//jezeli byla zmiana, to ustawia na true
+		}
+	}
+	return zmiana;
+}
+
+void clean (int **lab, int rozmiar, int x1, int y1, int x2, int y2)        //funkcja wyszukuje najkrotsza sciezke i czysci wszystkie pozostale
+{
+	bool way[rozmiar][rozmiar];                                            // przechowuje najkrotsza
+	memset (way, 0, rozmiar*rozmiar);                                      // czyszczenie (wszystko = 0)
+	while (x1!=x2||y1!=y2)        										   // szukanie po sasiadach najkrotszej odleglosci (roznica wynosi 1)
+	{
+		way[x2][y2] = true;
+		if (lab[x2+1][y2]<lab[x2][y2]&&lab[x2+1][y2]>0)
+		{
+			x2++;
+			continue;
+		}
+		if (lab[x2-1][y2]<lab[x2][y2]&&lab[x2-1][y2]>0)
+		{
+			x2--;
+			continue;
+		}
+		if (lab[x2][y2+1]<lab[x2][y2]&&lab[x2][y2+1]>0)
+		{
+			y2++;
+			continue;
+		}
+		if (lab[x2][y2-1]<lab[x2][y2]&&lab[x2][y2-1]>0)
+		{
+			y2--;
+			continue;
+		}
+		return;
+	}
+	for (int i =1; i<rozmiar-1;i++)
+	{
+		for(int j=1; j<rozmiar-1; j++)
+		{
+			if(!way[j][i])
+			{
+				if(lab[j][i]>0)
+				{
+					lab [j][i]=0;                                       //czyszczenie dlyzszych drog
+				}
+			}
+		}
+	}
+	lab[x1][y1]=1;
+}
+
+void tracking (char **lab, int rozmiar, int x1, int y1, int x2, int y2)   // glowna funkcja wyszukiwania
+{
+	int **tab;
+	tab = new int *[rozmiar];
+	for (int i=0; i<rozmiar; i++)
+	{
+		tab[i] = new int [rozmiar];
+	}
+	for (int j=0; j<rozmiar; j++)                      //tworzenie dodatkowej tablicy
+	{
+		for (int i=0; i<rozmiar;i++)
+		{
+			if (lab[i][j]=='X'||lab[i][j]=='x')     //sciana
+			{
+				tab[i][j] = -1;
+			}
+			else if (lab[i][j]=='O'||lab[i][j]=='Q'||lab[i][j]=='0')    //wolne pola
+			{
+				tab[i][j] = 0;
+			}
+		}
+	}
+	int tempx1=x1, tempx2=x2, tempy1=y1, tempy2=y2;       //wartosc wspolrzednych wpisanych uzytkownikem
+	if (x1==0)
+	{
+		x1=1;
+	}
+	else if (x1==rozmiar-1)
+	{
+		x1=rozmiar-2;
+	}
+
+	if (y1==0)
+	{
+		y1=1;
+	}
+	else if (y1==rozmiar-1)
+	{
+		y1=rozmiar-2;
+	}
+
+	if (x2==0)
+	{
+		x2=1;
+	}
+	else if (x2==rozmiar-1)
+	{
+		x2=rozmiar-2;
+	}
+
+	if (y2==0)
+	{
+		y2=1;
+	}
+	else if (y2==rozmiar-1)
+	{
+		y2=rozmiar-2;
+	}
+	tab [tempx1][tempy1] = 1;                       //punkt startowy
+	while (mark(tab, rozmiar)){                    //zaznaczanie kolejno odwiedzanych pol, dopoki sa jakies zmiany
+	}
+	clean(tab,rozmiar,x1,y1,x2,y2);                //szukamy najkrotsza
+	int lk = tab[x2][y2];
+	x1=tempx1; x2=tempx2; y1=tempy1; y2=tempy2;
+	cout<<endl;
+	for (int j=0; j<rozmiar; j++)                 //zmieniamy labirynt + najkrotsza droga
+	{
+		for (int i=0; i<rozmiar;i++)
+		{
+			if (tab[i][j]==-1)
+			{
+				lab[i][j] = 'X';
+			}
+			else if (tab[i][j]==0)
+			{
+				lab[i][j] = 'O';
+			}
+			else if (tab[i][j]>0&&tab[tempx1][tempy1]!=tab[tempx2][tempy2])
+			{
+				lab[i][j] = 'o';
+			}
+		}
+	}
+
+	lab[x1][y1]='s';     //   start
+	lab[x2][y2]='e';     //finish
+
+	displayLab(lab,rozmiar);
+	if (tab[x2][y2]!=0&&tab[x1][y1]!=0)    // ilosc krokow
+	{
+		lk=lk-1;
+	}
+	cout<<"\nLiczba krokow: "<<lk;
+	for (int i=0; i<rozmiar; i++)
+	{
+		delete [] tab [i];
+	}
+	delete [] tab;
+
+}
+
+
+void findTheWay ()
+{
+	cout<<"\n\tWYBIERZ LABIRYNT\n1. Labirynt 1  15x15\n2. Labirynt 2  21x21\n3. Labirynt 3  30x30\n";
+	SYSTEMTIME pocz, kon;
+	int option;
+	cin>>option;
+	switch (option)
+	{
+		case 1:
+			{
+				char **labirynt;
+				labirynt = new char *[15];
+				for (int i=0; i<15; i++)
+				{
+					labirynt[i] = new char[15];
+				}
+				char labirynt1 [15][15] =
+												{{'X','X','X','X','X','X','X','X','Q','X','X','X','X','X','X'},
+												 {'X','O','O','O','O','O','O','O','O','O','O','O','O','O','X'},
+												 {'X','X','X','X','O','X','X','X','X','X','O','X','X','O','X'},
+												 {'X','O','X','O','O','O','X','O','O','O','O','X','O','O','X'},
+												 {'X','O','X','O','X','O','X','X','X','X','X','X','O','X','X'},
+												 {'X','O','X','O','X','O','O','O','O','O','O','X','O','X','X'},
+												 {'X','O','X','O','X','O','X','X','X','X','O','X','O','O','X'},
+												 {'X','O','X','O','X','O','O','O','X','O','O','X','X','O','X'},
+												 {'X','O','O','O','X','X','X','X','X','X','O','X','X','O','X'},
+												 {'X','O','X','O','O','O','O','O','X','O','O','O','O','O','X'},
+												 {'X','O','X','X','X','X','X','O','X','O','X','X','X','O','X'},
+												 {'X','O','O','O','X','O','O','O','O','O','X','O','O','O','X'},
+												 {'X','O','X','X','X','O','X','X','X','X','X','X','X','O','X'},
+												 {'X','O','O','O','O','O','O','O','O','O','O','O','O','O','X'},
+												 {'X','X','X','X','X','X','X','X','X','X','X','X','X','X','X'}};
+				for (int i = 0; i < 15; i++)
+				{
+					for (int j = 0; j < 15; j++)
+					{
+						labirynt[i][j] = labirynt1 [i][j];
+					}
+				}
+				displayLab(labirynt, 15);
+				unsigned int x1,x2,y1,y2;
+				cout<<"\nWspolrzedne poczatkowe:\nX - ";
+				cin>>x1;
+				cout<<"\nY - ";
+				cin>>y1;
+				cout<<"\nWspolrzedne koncowe:\nX - ";
+				cin>>x2;
+				cout<<"\nY - ";
+				cin>>y2;
+				if (labirynt[y1][x1]=='X'||labirynt[y2][x2]=='X')
+				{
+					cout<<"\nPoczatek lub koniec sa w scianie. Sprobuj ponownie\n";
+					system("PAUSE");
+					findTheWay ();
+				}
+				else
+				{
+
+					GetSystemTime(&pocz);
+					tracking(labirynt,15,y1,x1,y2,x2);
+					GetSystemTime(&kon);
+					setTime (pocz, kon);
+					for (int i=0; i<15; i++)
+					{
+						delete [] labirynt [i];
+					}
+					delete [] labirynt;
+				}
+				break;
+			}
+		case 2:
+			{
+				char **labirynt2;
+				labirynt2 = new char *[21];
+				for (int i=0; i<21; i++)
+				{
+					labirynt2[i] = new char[21];
+				}
+				char labirynt2_2 [21][21] = {{'X','X','Q','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X'},
+											 {'X','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','X'},
+											 {'X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','O','X','O','X'},
+										   	 {'X','O','X','O','O','O','O','O','O','O','O','O','O','O','O','O','X','O','X','O','X'},
+										     {'X','O','X','O','X','X','X','X','X','O','X','X','X','X','O','O','X','O','X','O','X'},
+											 {'X','O','X','O','X','O','O','O','O','O','O','O','O','X','O','O','X','O','X','O','X'},
+											 {'X','O','X','O','O','O','X','X','X','X','X','X','O','X','X','O','X','O','X','O','X'},
+										 	 {'X','O','X','O','X','O','X','O','O','O','O','O','O','O','X','O','X','O','X','O','X'},
+											 {'X','O','X','O','X','O','X','O','X','X','X','O','X','O','X','O','X','O','X','O','X'},
+											 {'X','O','X','X','X','O','X','O','X','O','O','O','X','O','X','O','X','O','X','O','X'},
+											 {'X','O','X','O','X','O','X','O','X','O','X','O','X','X','X','O','X','O','X','O','X'},
+											 {'X','O','O','O','X','O','X','O','X','O','O','O','X','O','X','O','X','O','X','O','X'},
+											 {'X','O','X','O','X','O','X','O','X','X','O','X','X','O','X','O','X','O','X','O','X'},
+											 {'X','O','X','O','X','O','X','O','O','O','O','O','O','O','X','O','X','O','X','O','X'},
+											 {'X','O','X','O','X','O','X','X','X','X','X','X','X','X','X','O','X','O','X','O','X'},
+											 {'X','O','X','O','X','O','O','O','O','O','O','X','O','O','O','O','X','O','O','O','X'},
+											 {'X','O','X','O','X','X','X','X','O','X','X','X','X','X','O','X','X','O','X','O','X'},
+											 {'X','O','X','O','O','O','O','X','O','O','O','X','O','O','O','O','O','O','X','O','X'},
+											 {'X','O','X','X','X','X','O','X','X','X','X','X','X','X','X','X','X','X','X','O','X'},
+											 {'X','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','O','X'},
+											 {'X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','X','Q','X','X'}};
+				for (int i = 0; i < 21; i++)
+				{
+					for (int j = 0; j < 21; j++)
+					{
+						labirynt2[i][j] = labirynt2_2 [i][j];
+					}
+				}
+				displayLab(labirynt2, 21);
+				unsigned int x1,x2,y1,y2;
+				cout<<"\nWspolrzedne poczatkowe:\nX - ";
+				cin>>x1;
+				cout<<"\nY - ";
+				cin>>y1;
+				cout<<"\nWspolrzedne koncowe:\nX - ";
+				cin>>x2;
+				cout<<"\nY - ";
+				cin>>y2;
+				if (labirynt2[y1][x1]=='X'||labirynt2[y2][x2]=='X')
+				{
+					cout<<"\nPoczatek lub koniec sa w scianie. Sprobuj ponownie\n";
+					system("PAUSE");
+					findTheWay ();
+				}
+				else
+				{
+					GetSystemTime(&pocz);
+					tracking(labirynt2,21,y1,x1,y2,x2);
+					GetSystemTime(&kon);
+					setTime (pocz, kon);
+					for (int i=0; i<21; i++)
+					{
+						delete [] labirynt2 [i];
+					}
+					delete [] labirynt2;
+				}
+				break;
+			}
+		case 3:
+			{
+				char **labirynt3;
+				labirynt3 = new char *[30];
+				for (int i=0; i<30; i++)
+				{
+					labirynt3[i] = new char[30];
+				}
+				char labirynt3_2 [30][30] = {{'x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','Q','x','x','x','x','x','x','x','x','x','x'},
+											 {'x','0','0','0','0','0','0','0','0','x','0','0','0','0','0','0','0','0','x','0','x','x','x','0','0','0','0','x','x','x'},
+											 {'x','0','x','0','x','x','0','x','x','x','0','x','x','x','x','x','x','x','x','0','x','0','0','0','x','x','0','x','0','x'},
+											 {'x','0','x','0','x','x','0','0','0','0','0','0','0','0','0','0','0','0','0','0','x','0','x','0','x','x','x','x','0','x'},
+											 {'x','0','x','0','x','x','x','x','0','x','0','x','x','x','x','0','x','x','x','0','x','x','x','0','0','0','0','0','0','x'},
+											 {'x','0','0','0','0','0','0','x','0','x','0','0','0','0','x','0','x','0','x','0','0','0','0','0','x','x','x','x','x','x'},
+											 {'x','x','x','0','x','x','0','x','0','x','0','x','x','0','x','0','x','0','x','x','x','x','0','x','x','0','0','0','0','x'},
+											 {'x','x','0','0','x','x','0','x','0','x','0','x','x','x','x','0','x','0','0','0','0','x','0','x','x','x','0','x','0','x'},
+											 {'x','x','x','x','x','x','0','x','0','x','0','0','0','0','x','0','x','x','0','x','x','x','0','x','0','x','0','x','0','x'},
+											 {'x','0','0','x','0','0','0','x','0','x','0','x','x','0','x','0','0','0','0','0','0','0','0','x','0','x','0','x','0','x'},
+											 {'x','x','0','x','0','x','0','0','0','x','0','0','0','0','x','0','x','x','0','x','x','x','0','x','0','0','0','x','0','x'},
+											 {'x','x','0','x','0','x','0','x','x','x','0','x','x','x','x','0','x','x','0','x','0','x','0','x','0','x','0','x','0','x'},
+											 {'x','x','0','x','0','x','0','0','0','0','0','0','0','0','0','0','0','x','0','x','0','x','0','0','0','x','0','x','0','x'},
+											 {'x','x','0','x','0','x','0','x','x','x','x','x','x','x','x','x','x','x','0','x','0','x','0','x','x','x','0','x','0','x'},
+											 {'x','x','0','x','x','x','0','x','0','0','0','0','0','0','0','0','0','0','0','0','0','x','0','0','0','0','0','x','0','x'},
+											 {'x','0','0','0','0','x','0','x','0','x','x','x','x','x','x','x','x','x','x','x','x','x','0','x','x','x','x','x','0','x'},
+											 {'x','x','x','x','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','x'},
+											 {'x','0','0','x','0','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','0','x','0','x','0','x','x','x','x','x'},
+											 {'x','0','x','x','0','x','0','0','0','0','0','x','x','x','x','x','x','x','x','x','0','x','0','x','0','0','0','0','x','x'},
+											 {'x','0','x','x','0','x','0','x','x','x','0','0','0','0','0','0','0','0','0','0','0','x','0','x','x','x','x','0','x','x'},
+											 {'x','0','0','0','0','x','0','0','0','x','0','x','x','x','x','x','0','x','x','x','x','x','0','x','0','0','0','0','x','x'},
+											 {'x','x','x','x','0','x','x','x','x','x','0','x','0','0','0','x','0','0','0','0','0','x','0','x','0','x','x','x','x','x'},
+											 {'x','x','0','0','0','0','0','0','0','0','0','x','0','x','x','x','0','x','x','x','0','x','0','x','0','0','0','0','x','x'},
+											 {'x','x','0','x','x','x','x','x','0','x','x','x','0','0','0','0','0','0','0','x','0','x','0','x','x','x','x','0','x','x'},
+											 {'x','x','0','x','0','0','0','x','0','x','0','x','x','x','x','x','x','x','0','x','0','x','0','x','0','0','0','0','x','x'},
+											 {'x','x','0','x','0','x','0','x','0','x','0','0','0','0','0','x','x','x','0','x','0','x','0','x','0','x','x','x','x','x'},
+											 {'x','0','0','x','0','x','0','x','0','x','0','x','x','x','0','0','0','0','0','x','0','x','0','x','0','0','0','0','0','x'},
+											 {'x','0','x','x','0','x','0','x','0','x','x','x','x','x','x','x','x','x','x','x','0','x','0','x','x','x','x','x','0','x'},
+											 {'x','0','0','0','0','x','0','0','0','x','0','0','0','0','0','0','0','0','0','0','0','x','0','0','0','0','0','0','0','x'},
+											 {'x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x'}};
+
+
+				for (int i = 0; i < 30; i++)
+				{
+					for (int j = 0; j < 30; j++)
+					{
+						labirynt3[i][j] = labirynt3_2 [i][j];
+					}
+				}
+				displayLab(labirynt3, 30);
+				unsigned int x1,x2,y1,y2;
+				cout<<"\nWspolrzedne poczatkowe:\nX - ";
+				cin>>x1;
+				cout<<"\nY - ";
+				cin>>y1;
+				cout<<"\nWspolrzedne koncowe:\nX - ";
+				cin>>x2;
+				cout<<"\nY - ";
+				cin>>y2;
+				if (labirynt3[y1][x1]=='x'||labirynt3[y2][x2]=='x')
+				{
+					cout<<"\nPoczatek lub koniec sa w scianie. Sprobuj ponownie\n";
+					system("PAUSE");
+					findTheWay ();
+				}
+				else
+				{
+					GetSystemTime(&pocz);
+					tracking(labirynt3,30,y1,x1,y2,x2);
+					GetSystemTime(&kon);
+					setTime (pocz, kon);
+					for (int i=0; i<30; i++)
+					{
+						delete [] labirynt3 [i];
+					}
+					delete [] labirynt3;
+				}
+				break;
+			}
+		default:
+			{
+				findTheWay();
+				break;
+			}
+	}
+	cout<<"\nChcesz wyprobowac inny labirynt? 1-tak; 2-nie\n";
+	int opt2;
+	cin>>opt2;
+	switch (opt2)
+	{
+		case 1:
+			findTheWay();
+			break;
+		case 2:
+			exit(0);
+			break;
+		default:
+			break;
+	}
+
+}
+int main ()
+{
+	cout<<"\tLEGENDA:\n";
+	setColor(1,15);
+	cout<<" o ";
+	setColor(7,0);
+	cout<<" - kroki\n";
+	setColor(1,1);
+	cout<<"   ";
+	setColor(7,0);
+	cout<<" - sciana\n";
+	setColor(15,15);
+	cout<<"   ";
+	setColor(7,0);
+	cout<<" - wolne pola\n";
+
+	setColor(10,10);
+	cout<<"  ";
+	setColor(7,0);
+	cout<<" - start\n";
+	setColor(12,12);
+	cout<<"  ";
+	setColor(7,0);
+	cout<<" - stop\n";
+	findTheWay();
+	return 0;
+}
