@@ -1,0 +1,259 @@
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
+#include <windows.h>
+#include <vector>
+
+using namespace std;
+
+vector <int> iloscZamian;                                       // wektor zawierajacy liczbe zamian
+vector <int> iloscPor;                                          // wektor zawierajacy liczbe porownan
+
+                    //METODY
+void randomOrNot (int tab[], int start, int finish);            // funkcja ktora wybiera metode wprowadzania liczb
+void sortTab(int tab[], int start, int finish);                 // funkcja sortowania (dzieli tablice na dwie czesci i rekurencyjnie sortuje prawa i lewa czesc)
+int findPivot(int tab[], int start, int finish);                /*funkcja, ktora szuka pivota, umieszcza go na koncu, sortuje odpowiednia czesc tablicy i...
+                                                                ...umieszcza pivot na jego miejsce (pod koniec zwraca indeks, ktory dzieli tablice na lewa i prawa czesc)*/
+
+void displayTab(int tab[], int start, int finish);              //funkcja wyswietlajaca tablice przed i po sortowaniu
+void displaySwap (int tab[], int start, int finish, int a, int b, int p);   /*funkcja wyswietla tablice po kazdej zamianie i jest odpowiedzialna za prawidlowe oddzielenie...
+                                                                             ... wymienianych elementow jak rowniez za pivot...
+... int tab - tablica; int start - poczatek tab; int finish - koniec tab; int a oraz int b - indeks elementow zamienionych; int p - indeks pivotu*/
+
+int countAmount (vector<int> &n);                               // funkcja liczy liczbe porownan i zamian
+void setColor(int text, int bg);                                //funkcja jest odpowiedzialna za kolory
+void setTime (SYSTEMTIME pocz, SYSTEMTIME kon);                 //funkcja obliczajaca czas sortowania
+
+int main ()
+{
+    SYSTEMTIME pocz, kon;
+    srand(time(NULL));
+    int sizeTab;
+
+    cout<<"\tSortawanie metoda quicksort\n";
+    cout<<"\nLiaiter Mykhailo\n";
+    cout<<"\nLegenda:\n";
+
+    setColor(9,0);
+    cout<<"X X X";
+    setColor(7,0);
+
+    cout<<" - zamieniane elementy\n";
+
+    setColor(9,14);
+    cout<<"X X X";
+    setColor(7,0);
+
+    cout<<" - pivot\n";
+
+    setColor(0,12);
+    cout<<"     ";
+    setColor(7,0);
+
+    cout<<" - element ustalony na swojej pozycji\n\n\n";
+    cout<<" Podaj ilosc elementow tablicy:\n";
+    cin>>sizeTab;
+
+    int tab [sizeTab];
+    int start = 0;
+    int finish = sizeTab;
+
+    randomOrNot (tab, start, finish);
+
+    cout<<"\nTablica do sortowania:\n";
+    displayTab (tab, start, finish);
+    cout<<endl;
+
+    GetSystemTime(&pocz);
+    sortTab(tab, start, finish-1);
+    GetSystemTime(&kon);
+
+    cout<<"\nPosortowana tablica:\n";
+    setColor(0,12);
+    displayTab (tab, start, finish);
+    setColor(0,0);
+    cout<<"EasterEGG";
+    setColor(7,0);
+    setTime (pocz, kon);
+
+    cout<<endl;
+    cout<<"\nIlosc porownan (globalnie) = "<<countAmount(iloscPor)<<"\nIlosc zamian (globalnie) = "<<countAmount(iloscZamian)<<endl;
+    return 0;
+}
+int countAmount (vector <int> &n)
+{
+    int glob = 0;
+    for (int i=0; i<n.size(); i++)
+    {
+        glob += n[i];
+    }
+    return glob;
+}
+void setColor(int text, int bg)
+{
+    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdOut, (WORD)((bg<<4)|text));
+}
+void displayTab (int tab[], int start, int finish)
+{
+    cout<<endl;
+    for (int i = start; i < finish; i++)
+    {
+        cout<<tab[i]<<" ";
+    }
+}
+void displaySwap (int tab[], int start, int finish, int a, int b, int p)
+{
+    if(a != b)
+    {
+        cout<<endl;
+        for (int i = start; i < finish; i++)
+        {
+            if (i == a && i != p || i == b && i !=p )
+            {
+                setColor(9,0);
+                cout<<tab[i];
+                setColor(0,0);
+                cout<<"|";
+                setColor(7,0);
+            }
+            else if (i == p)
+            {
+                setColor(9,14);
+                cout<<tab[i];
+                setColor(0,0);
+                cout<<"|";
+                setColor(7,0);
+            }
+            else
+            {
+                cout<<tab[i]<<" ";
+            }
+        }
+    }
+}
+void sortTab (int tab[], int start, int finish)
+{
+    if(start < finish)
+    {
+        cout<<"\n\n - \n";
+        int middle = findPivot (tab,start, finish);     //znalezienie srodka
+        sortTab(tab,start,middle - 1);                  //rekurencyjnie sortowanie lewej czesci
+        sortTab(tab,middle + 1,finish);                 //rekurencyjnie sortowanie prawej czesci
+    }
+    else if (start == finish)
+    {
+        cout<<"\n\n - \n\n";
+        setColor(0,12);
+        cout<<tab[start];
+        setColor(0,0);
+        cout<<"|";
+        setColor(7,0);
+    }
+
+}
+int findPivot(int tab[], int start, int finish)
+{
+    int temp;
+    int pivot;
+    int kZam = 1;
+    int por = 0;
+
+    pivot = tab[(start+finish)/2];              //wyszukiwanie pivotu
+    displaySwap (tab, start, finish+1, finish, ((start+finish)/2), ((start+finish)/2) );
+
+    temp = tab[finish];                         //zamieniamy pivot i ostatni element
+    tab[finish] = pivot;
+    tab[(start+finish)/2] = temp;
+
+    int a, b = start;
+
+    for (a = start; a <= finish; a++)           //petla zamiany elementow
+    {
+        if(tab[a] <= tab[finish])
+        {
+            if (a!=b)
+            kZam++;
+            displaySwap (tab, start, finish+1, a, b, finish);
+            temp = tab[a];
+            tab[a] = tab [b];
+            tab[b] = temp;
+            b++;
+            por++;
+        }
+        if (tab[b]>tab[finish]&&tab[a]>tab[finish])
+            por++;
+    }
+    cout<<endl;
+
+    for (int i=start; i<=finish; i++)
+    {
+        if (i==b-1)
+        {
+            setColor(0,12);
+            cout<<tab[i];
+            setColor(0,0);
+            cout<<"|";
+            setColor(7,0);
+        }
+        else
+            cout<<tab[i]<<" ";
+    }
+
+    cout<<" <--- (Zamian "<<kZam<<" Porownan "<<por<<")";
+    iloscZamian.push_back(kZam);
+    iloscPor.push_back(por);
+
+    return b-1;
+}
+void setTime (SYSTEMTIME pocz, SYSTEMTIME kon)
+{
+    if(kon.wMilliseconds<pocz.wMilliseconds)
+    {
+        kon.wMilliseconds = kon.wMilliseconds+1000;
+        kon.wSecond = kon.wSecond-1;
+    }
+    if (kon.wSecond<pocz.wSecond)
+    {
+        kon.wSecond = kon.wSecond+60;
+        kon.wMinute = kon.wMinute - 1;
+    }
+    if (kon.wMinute<pocz.wMinute)
+    {
+        kon.wMinute = kon.wMinute + 60;
+        kon.wHour = kon.wHour -1;
+    }
+    if (kon.wHour<pocz.wMilliseconds)
+    {
+        kon.wHour = kon.wHour + 24;
+        kon.wDay = kon.wDay - 1;
+    }
+    cout<<"\nCzas sortowania  --> "<<kon.wMinute - pocz.wMinute<<" m "<<kon.wSecond - pocz.wSecond<<" s " <<kon.wMilliseconds - pocz.wMilliseconds<<" milisekund\n";
+}
+void randomOrNot (int tab[], int start, int finish)
+{
+    int opt;
+    cout<<"\nWybierz:\nLosowo - 1; Recznie - 0\n";
+    cin>>opt;
+    switch (opt)
+    {
+        case 1:
+            cout<<"\nZakres losowania liczb (-1000;1000)\n";
+            for (int i = start; i < finish; i++)
+            {
+                tab[i] = (rand()%2001)+(-1000);
+            }
+            break;
+        case 0:
+            cout<<"\nWypelnij tablice:\n";
+            for (int i = start; i < finish; i++)
+            {
+                cout<<i+1<<") ";
+                cin>>tab[i];
+            }
+            break;
+        default:
+            cout<<"Something went wrong:(\ntry again\n";
+            randomOrNot (tab, start, finish);
+    }
+}
