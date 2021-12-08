@@ -1,0 +1,412 @@
+//Drzewo BST
+#include <iostream>
+#include <time.h>
+#include <windows.h>
+#include <cstdlib>
+
+using namespace std;
+
+int Felenko[10] = {81, 11, 68, 93, 45, 28, 3, 5, 68, 17};
+int Liaiter[10] = {53, 10, 35, 17, 64, 38, 58, 11, 24, 89};
+
+int LiczbaLosowa()    //funkcja losowania liczby calkowitej
+{
+	int LosLiczba;
+	LosLiczba=rand()%100+0;
+	return LosLiczba;
+}
+string BrelokLosowy ()  //funkcja losowania brelok
+{
+	string s;
+	for (int i = 0; i < 5;i++)
+	{
+		string los;
+		los = (( rand() %( 'z' - 'a' ) ) + 'a' );
+		s = s+los;
+	}
+	return s;
+}
+
+//			DRZEWO
+class BinaryTree
+{
+	private:
+		struct TreeNode
+		{
+			int klucz;
+			string brelok;
+			TreeNode *left;
+			TreeNode *right;
+		};
+
+		TreeNode *root;
+
+		void insert (TreeNode *&, TreeNode*&);
+		void destroySubTree (TreeNode *);
+		void deleteNode (int, TreeNode *&);
+		void makeDeletion (TreeNode *&);
+
+	public:
+		BinaryTree()
+		{
+			root = NULL;
+		}
+
+		~BinaryTree()
+		{
+			destroySubTree (root);
+		}
+
+		void insertNode (int, string);
+		void searchAndDisplayNode (int);
+		bool searchNode (int);
+		void remove (int);
+};
+
+void BinaryTree::insert(TreeNode *&nodePtr , TreeNode *&newNode)
+{
+
+	if(nodePtr==NULL)
+	{
+		nodePtr=newNode;
+	}
+	else if (newNode->klucz < nodePtr->klucz)
+	{
+		insert(nodePtr->left, newNode);
+	}
+	else
+	{
+		insert(nodePtr->right, newNode);
+	}
+}
+
+void BinaryTree::insertNode(int k, string b)
+{
+	if(!searchNode(k))
+	{
+		TreeNode *newNode = NULL;
+
+		newNode = new TreeNode;
+		newNode->klucz = k;
+		newNode->brelok = b;
+		newNode->left=newNode->right = NULL;
+
+		insert(root, newNode);
+	}
+	else
+	{
+		cout<<"\nWezl o takim samym kluczu juz istnieje. ( "<<k<<" )\n";
+	}
+}
+
+void BinaryTree::destroySubTree(TreeNode* nodePtr)
+{
+	if (nodePtr)
+	{
+		if(nodePtr->left)
+		{
+			destroySubTree(nodePtr->left);
+		}
+		if(nodePtr->right)
+		{
+			destroySubTree(nodePtr->right);
+		}
+		delete nodePtr;
+	}
+}
+
+void BinaryTree::searchAndDisplayNode (int k)
+{
+	TreeNode *nodePtr = root;
+	bool flag = false;
+	while (nodePtr)
+	{
+		if (nodePtr->klucz == k)
+		{
+			cout<<"\nKlucz: "<<nodePtr->klucz<<" --- Brelok: "<<nodePtr->brelok;
+			flag = true;
+			break;
+		}
+		else if (k<nodePtr->klucz)
+		{
+			nodePtr = nodePtr->left;
+		}
+		else
+		{
+			nodePtr = nodePtr->right;
+		}
+	}
+	if(!flag)
+	{
+		cout<<"\n\nNie znaleziono wezl o kluczu - "<<k;
+	}
+}
+
+bool BinaryTree::searchNode(int k)
+{
+	TreeNode *nodePtr = root;
+
+	while (nodePtr)
+	{
+		if (nodePtr->klucz == k)
+		{
+			return true;
+		}
+		else if (k<nodePtr->klucz)
+		{
+			nodePtr = nodePtr->left;
+		}
+		else
+		{
+			nodePtr = nodePtr->right;
+		}
+	}
+	return false;
+}
+
+void BinaryTree::remove(int k)
+{
+	deleteNode (k, root);
+}
+
+void BinaryTree::deleteNode(int k, TreeNode *&nodePtr)
+{
+	if(k<nodePtr->klucz)
+	{
+		deleteNode(k, nodePtr->left);
+	}
+	else if(k>nodePtr->klucz)
+	{
+		deleteNode(k, nodePtr->right);
+	}
+	else
+	{
+		makeDeletion(nodePtr);
+	}
+}
+
+void BinaryTree::makeDeletion(TreeNode *&nodePtr)
+{
+	TreeNode *tempNode = NULL;
+	if (nodePtr == NULL)
+	{
+		cout<<"\nNie mozna usunac pustego wezla.\n";
+	}
+	else if (nodePtr->right == NULL)
+	{
+		tempNode = nodePtr;
+		nodePtr = nodePtr->left;
+		delete tempNode;
+	}
+	else if (nodePtr->left == NULL)
+	{
+		tempNode = nodePtr;
+		nodePtr = nodePtr->right;
+		delete tempNode;
+	}
+	else
+	{
+		cout<<"\nStopien 2, nie mozna usunac.\n";
+	}
+}
+
+void plantTree()
+{
+	BinaryTree *Tree = new BinaryTree;
+	const string name1 = "Mykhailo Liaiter";
+	const string name2 = "Svitlana Felenko";
+	cout<<"\n\n  Quicksort Liaiter - 53, 10, 35, 17, 64, 38, 58, 11, 24, 89\n";
+	cout<<"  Quicksort Felenko - 81, 11, 68, 93, 45, 28, 3, 5, 68, 17\n\n";
+	cout<<"\n\n ---------------------                -------                      ---------------------\n";
+	cout<<" --- 1) Wstaw do drzewa element;              2) Szukaj i wyswietl element;          ---\n";
+	cout<<" --- 3) Dodaj elementy 'Quicksort_Liaiter'    4) Dodaj elementy 'Quicksort_Felenko'  ---\n";
+	cout<<" ---    i postepuj zgodnie z instrukcjami;       i postepuj zgodnie z instrukcjami;  ---\n";
+	cout<<" --- 5) Usun Element;                         6) Exit;                               ---\n";
+	cout<<" ---------------------                -------                      ---------------------\n";
+	int option;
+	cin>>option;
+	switch (option)
+	{
+		case 1:
+			{
+				cout<<"\n Podaj ilosc elementow oraz 'klucz' i 'brelok':\n";
+				int il;
+				int klucz;
+				string brelok;
+				cin>>il;
+				for (int i=0; i<il; i++)
+				{
+					cin>>klucz;
+					cin>>brelok;
+					Tree->insertNode(klucz, brelok);
+				}
+				break;
+			}
+		case 2:
+			{
+				cout<<"\n Podaj parametr klucza:\n";
+				int k;
+				cin>>k;
+				Tree->searchAndDisplayNode (k);
+				break;
+			}
+		case 3:
+			{
+				cout<<"\n\t Quicksort Liaiter\n";
+				Tree->insertNode(13, name1);
+				for (int i=0; i<10; i++)
+				{
+					Tree->insertNode(Liaiter[i], BrelokLosowy ());
+				}
+				Tree->searchAndDisplayNode (13);
+				int random;
+				int check;
+				while(check!=1)
+				{
+					random = LiczbaLosowa();
+					Tree->searchAndDisplayNode (random);
+					cout<<"\nSzukamy dalej? ( '0' - tak; '1' - nie )\n";
+					cin>>check;
+				}
+				int znany;
+				while(!Tree->searchNode(znany))
+				{
+					cout<<"\nZnajdz element o kluczu znanym:";
+					cin>>znany;
+				}
+				Tree->searchAndDisplayNode (znany);
+				Tree->remove (random);
+				Tree->remove (znany);
+				cout<<"\n - Element o kluczu losowym  (jezeli '0' - to juz go nie ma) -> "<<Tree->searchNode(random);
+				cout<<"\n - Element o kluczu znanym  (jezeli '0' - to juz go nie ma) -> "<<Tree->searchNode(znany);
+				Tree->searchAndDisplayNode (13);
+				check = 0;
+				while(check!=1)
+				{
+					random = LiczbaLosowa();
+					Tree->searchAndDisplayNode (random);
+					cout<<"\nSzukamy dalej? ( '0' - tak; '1' - nie )\n";
+					cin>>check;
+				}
+				while(!Tree->searchNode(znany))
+				{
+					cout<<"\nZnajdz element o kluczu znanym:";
+					cin>>znany;
+				}
+				Tree->searchAndDisplayNode (znany);
+				cout<<"\n\n 1 - Jeszcze raz; 0 - Exit\n";
+				int wybor;
+				cin>>wybor;
+				if(wybor == 1)
+				{
+					delete Tree;
+					system( "cls" );
+					plantTree();
+				}
+				else
+				{
+					delete Tree;
+					exit (0);
+				}
+				break;
+			}
+		case 4:
+			{
+				cout<<"\n\t Quicksort Felenko\n";
+				Tree->insertNode(13, name2);
+				for (int i=0; i<10; i++)
+				{
+					Tree->insertNode(Felenko[i], BrelokLosowy ());
+				}
+				Tree->searchAndDisplayNode (13);
+				int random;
+				int check;
+				while(check!=1)
+				{
+					random = LiczbaLosowa();
+					Tree->searchAndDisplayNode (random);
+					cout<<"\nSzukamy dalej? ( '0' - tak; '1' - nie )\n";
+					cin>>check;
+				}
+				int znany;
+				while(!Tree->searchNode(znany))
+				{
+					cout<<"\nZnajdz element o kluczu znanym:";
+					cin>>znany;
+				}
+				Tree->searchAndDisplayNode (znany);
+				Tree->remove (random);
+				Tree->remove (znany);
+				cout<<"\n - Element o kluczu losowym  (jezeli '0' - to juz go nie ma) -> "<<Tree->searchNode(random);
+				cout<<"\n - Element o kluczu znanym  (jezeli '0' - to juz go nie ma) -> "<<Tree->searchNode(znany);
+				Tree->searchAndDisplayNode (13);
+				check = 0;
+				while(check!=1)
+				{
+					random = LiczbaLosowa();
+					Tree->searchAndDisplayNode (random);
+					cout<<"\nSzukamy dalej? ( '0' - tak; '1' - nie )\n";
+					cin>>check;
+				}
+				while(!Tree->searchNode(znany))
+				{
+					cout<<"\nZnajdz element o kluczu znanym:";
+					cin>>znany;
+				}
+				Tree->searchAndDisplayNode (znany);
+				cout<<"\n\n 1 - Jeszcze raz; 0 - Exit\n";
+				int wybor;
+				cin>>wybor;
+				if(wybor == 1)
+				{
+					delete Tree;
+					system( "cls" );
+					plantTree();
+				}
+				else
+				{
+					delete Tree;
+					exit (0);
+				}
+				break;
+			}
+		case 5:
+			{
+				cout<<"\n Usun element o znanym kluczu:\n";
+				int kluczZn;
+				cin>>kluczZn;
+				Tree->remove(kluczZn);
+				break;
+			}
+		case 6:
+			{
+				delete Tree;
+				exit(0);
+			}
+	}
+	delete Tree;
+}
+
+int main()
+{
+	srand(time(NULL));
+	cout<<"\t-------------------\n";
+	cout<<"\t-----DRZEWO BST----\n";
+	cout<<"\t-------------------\n";
+	cout<<"\n\nInicjacja pustego drzewa BST (press '1' to start or '0' to exit)\n";
+	int option;
+	while (option!=1)
+	{
+		cin>>option;
+		if (option == 0)
+		{
+			exit(0);
+			break;
+		}
+	}
+	if (option==1)
+	{
+		plantTree();
+	}
+	return 0;
+}
