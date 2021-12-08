@@ -1,0 +1,261 @@
+#include <iostream>
+#include <cstdlib>
+#include <windows.h>
+#include <ctime>
+
+using namespace std;
+
+double wartosc = 0;
+double poziom = 0;
+		
+struct Przedmiot{                											 //struktura przedmiotu
+	double cena;
+	double waga;
+	int ilosc;
+	Przedmiot()
+	{
+		this->cena = 0;
+		this->waga = 0;
+		this->ilosc = 0;
+	}
+};
+
+void setTime (SYSTEMTIME pocz, SYSTEMTIME kon)                              //funkcja obliczajaca czas
+{
+    if(kon.wMilliseconds<pocz.wMilliseconds)
+    {
+        kon.wMilliseconds = kon.wMilliseconds+1000;
+        kon.wSecond = kon.wSecond-1;
+    }
+    if (kon.wSecond<pocz.wSecond)
+    {
+        kon.wSecond = kon.wSecond+60;
+        kon.wMinute = kon.wMinute - 1;
+    }
+    if (kon.wMinute<pocz.wMinute)
+    {
+        kon.wMinute = kon.wMinute + 60;
+        kon.wHour = kon.wHour -1;
+    }
+    if (kon.wHour<pocz.wMilliseconds)
+    {
+        kon.wHour = kon.wHour + 24;
+        kon.wDay = kon.wDay - 1;
+    }
+    cout<<"\nCzas: "<<kon.wSecond - pocz.wSecond<<" sekund " <<kon.wMilliseconds - pocz.wMilliseconds<<" milisekund\n";
+}
+
+void wypiszIlosc(int*sztuk, int ilPrzed)                        	//funkcja wypisujaca ilosc przedmiotow
+{
+	cout<<endl;
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"----";
+	}
+	cout<<endl;
+	
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"| "<<i+1<<" ";
+		if (i == ilPrzed-1)
+		{
+			cout<<"|";
+		}
+	}
+	cout<<endl;
+	
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"| "<<sztuk[i]<<" ";
+		if (i == ilPrzed-1)
+		{
+			cout<<"|";
+		}
+	}
+	cout<<endl;
+	
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"----";
+	}
+	cout<<endl;	
+}
+
+void sortOplac (Przedmiot* tab, int* pos, int ilPrzed)        //Metoda 3 (najbardziej oplacalne przedmioty)
+{
+	double temp;
+	for (int i = 0; i < ilPrzed-1; i++)
+	{
+		for (int j = 0; j < ilPrzed - i - 1; j++)
+		{
+			if(tab[j].cena/tab[j].waga<=tab[j+1].cena/tab[j+1].waga)
+			{
+				swap(tab[j].waga,tab[j+1].waga);
+				swap(tab[j].cena,tab[j+1].cena);
+				swap(tab[j].ilosc,tab[j+1].ilosc);
+				swap(pos[j],pos[j+1]);
+			}
+		}
+	}
+}
+
+void sortNajcen (Przedmiot* tab, int* pos, int ilPrzed)   //Metoda 1 (najcenniejsze przedmioty)
+{
+	double temp;
+	for (int i = 0; i < ilPrzed-1; i++)
+	{
+		for (int j = 0; j < ilPrzed - i - 1; j++)
+		{
+			if(tab[j].cena<=tab[j+1].cena)
+			{
+				swap(tab[j].waga,tab[j+1].waga);
+				swap(tab[j].cena,tab[j+1].cena);
+				swap(tab[j].ilosc,tab[j+1].ilosc);
+				swap(pos[j],pos[j+1]);
+			}
+			
+		}
+	}
+}
+
+void sortNajlze (Przedmiot* tab, int* pos, int ilPrzed)   //Metoda 2 (najlzejsze przedmioty)
+{
+	double temp;
+	for (int i = 0; i < ilPrzed-1; i++)
+	{
+		for (int j = 0; j < ilPrzed - i - 1; j++)
+		{
+			if(tab[j].waga>=tab[j+1].waga)
+			{
+				swap(tab[j].waga, tab[j+1].waga);
+				swap(tab[j].cena, tab[j+1].cena);
+				swap(tab[j].ilosc, tab[j+1].ilosc);
+				swap(pos[j],pos[j+1]);
+			}
+			
+		}
+	}
+}
+
+int* zapakuj(Przedmiot* tab, int ilPrzed, double pojemnosc, int option)   //funkcja pakowania
+{
+	poziom = 0;
+	wartosc = 0;
+	int* pos = new int [ilPrzed];
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		pos[i] = i;
+	}
+	
+	switch (option)     			//wybieramy metode
+	{
+		case 1:
+			{
+				sortNajcen (tab, pos, ilPrzed);	
+				break;
+			}
+		case 2:
+			{
+				sortNajlze (tab, pos, ilPrzed);
+				break;
+			}
+		case 3:
+			{
+				sortOplac (tab, pos, ilPrzed);
+				break;
+			}
+		
+	}
+	
+	int* sztuk = new int[ilPrzed];
+	int ileSztuk;
+	
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		ileSztuk = pojemnosc/tab[i].waga;  
+		
+		if (ileSztuk>tab[i].ilosc)
+		{
+			sztuk[pos[i]] = tab[i].ilosc;
+		}
+		
+		else if(ileSztuk<=tab[i].ilosc)
+		{
+			sztuk[pos[i]] = ileSztuk;
+		}
+		
+		pojemnosc -= sztuk[pos[i]]*tab[i].waga;
+		wartosc += sztuk[pos[i]]*tab[i].cena;
+		poziom += sztuk[pos[i]]*tab[i].waga;
+	}
+	delete[] pos;
+	return sztuk;
+}
+
+
+int main ()
+{
+	SYSTEMTIME pocz, kon;
+	SYSTEMTIME pocz2, kon2;
+	SYSTEMTIME pocz3, kon3;
+	int ilPrzed;
+	double pojemnosc;
+	
+	cout<<"\n Podaj ilosc przedmiotow: ";
+	cin>>ilPrzed;
+	cout<<"\n Podaj pojemnosc plecaka: ";
+	cin>>pojemnosc;
+	
+	Przedmiot *plecak = new Przedmiot[ilPrzed];
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"\nPrzedmiot "<<i+1<<": "; 
+		cin>>plecak[i].cena>>plecak[i].waga>>plecak[i].ilosc;
+	}
+	
+	Przedmiot *plecak2 = new Przedmiot[ilPrzed];
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		plecak2[i].cena = plecak[i].cena;
+		plecak2[i].waga = plecak[i].waga;
+		plecak2[i].ilosc = plecak[i].ilosc;
+	}
+	
+	Przedmiot *plecak3 = new Przedmiot[ilPrzed];
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		plecak3[i].cena = plecak[i].cena;
+		plecak3[i].waga = plecak[i].waga;
+		plecak3[i].ilosc = plecak[i].ilosc;
+	}
+	
+	cout<<"\n\n\n+++++Strategia 1 - wartosc ++++++++++++++\n";
+	GetSystemTime(&pocz);
+	int* sztuk = zapakuj(plecak, ilPrzed, pojemnosc, 1);
+	wypiszIlosc(sztuk, ilPrzed);
+	cout<<"\nWartosc plecaka: "<<wartosc;
+	cout<<"\nPoziom upakowania: "<<poziom;
+	GetSystemTime(&kon);
+	setTime (pocz, kon);
+	
+	cout<<"\n\n\n+++++Strategia 2 - waga +++++++++++++++++\n";
+	GetSystemTime(&pocz2);
+	int* sztuk2 = zapakuj(plecak2, ilPrzed, pojemnosc, 2);
+	wypiszIlosc(sztuk2, ilPrzed);
+	cout<<"\nWartosc plecaka: "<<wartosc;
+	cout<<"\nPoziom upakowania: "<<poziom;
+	GetSystemTime(&kon2);
+	setTime (pocz2, kon2);
+	
+	cout<<"\n\n\n+++++Strategia 3 - oplacalnosc ++++++++++\n";
+	GetSystemTime(&pocz3);
+	int* sztuk3 = zapakuj(plecak3, ilPrzed, pojemnosc, 3);
+	wypiszIlosc(sztuk3, ilPrzed);
+	cout<<"\nWartosc plecaka: "<<wartosc;
+	cout<<"\nPoziom upakowania: "<<poziom;
+	GetSystemTime(&kon3);
+	setTime (pocz3, kon3);
+	
+	delete[] plecak, sztuk, sztuk2, sztuk3, plecak2, plecak3;
+	return 0;
+}
