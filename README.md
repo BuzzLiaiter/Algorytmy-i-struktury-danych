@@ -4,6 +4,5 @@ Implementacja algorytmów:<br />
 -Wieże Hanoi<br />
 -Labirynt<br />
 -Sortowanie metodą quicksort<br />
--Lista jednokierunkowa<br />
 -Problem plecakowy (zachłanny, dynamiczny)<br />
 -Drzewo BST
