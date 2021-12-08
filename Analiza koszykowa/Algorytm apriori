@@ -1,0 +1,268 @@
+#include <iostream>
+#include <list>
+#include <string>
+#include <algorithm>
+#include <vector>
+#include <windows.h>
+#include <cstdlib>
+#include <time.h>
+
+using namespace std;
+typedef unsigned int uint;
+#define minSup 0.20
+#define minCon 0.40
+
+struct Product
+{
+		string name;
+		int number;
+};
+
+struct Set
+{
+	vector<string> zestaw;
+	double ilosc;
+};
+
+uint randomNum (uint s, uint e)
+{
+	uint border;
+	border =(rand()%(e-s+1)+s);
+	return border;
+}
+
+bool compare(Product &a, Product &b){
+    return (a.name.compare(b.name) < 0);
+}
+			
+int main ()
+{
+	srand(time(NULL));
+	
+	list <vector<Product> > global;
+	vector <string> LP;
+	uint ileKosz;
+	uint ileProduct;
+	string nazwa;
+	uint from, to;
+	uint tempNum;
+	
+	cout<<"\nIle koszykow?: ";
+	cin>>ileKosz;
+	cout<<"\n\nIle roznych produktow?: ";
+	cin>>ileProduct;
+	cout<<"\n\nLista Produktow: ";
+	
+	
+	for (int i=0; i<ileProduct; i++)
+	{
+		cout<<"\n\t"<<i+1<<". ";
+		while (isspace(cin.peek())) cin.ignore();
+		getline (cin, nazwa);
+		LP.push_back(nazwa);
+	}
+	
+	cout<<"\nIle produktow na koszyk? od ";
+	cin>>from;
+	cout<<"do ";
+	cin>>to;
+	
+	for (int i=0; i<ileKosz; i++)
+	{
+		vector <Product> nowyKoszyk;
+		vector<Product>::iterator it;
+		tempNum = randomNum(from, to);
+		for (int j=0; j<tempNum; j++)
+		{
+			Product nowyProdukt;
+			nowyProdukt.name = LP[randomNum(0,ileProduct-1)];
+			nowyProdukt.number = 1;
+			nowyKoszyk.push_back(nowyProdukt);
+		}
+		sort (nowyKoszyk.begin(), nowyKoszyk.end(), compare);
+		global.push_back(nowyKoszyk);
+	}
+	int l=1;
+	cout<<"\n\nCzy wyswietlic liste towar�w (1 - tak, 0 - nie)? \n";
+	int option;
+	cin>>option;
+	if(option)
+	{
+		for (list <vector<Product> >::iterator it=global.begin(); it!=global.end(); it++)
+		{
+			cout<<"\nKoszyk "<<l<<":\n";
+			l++;
+			for (vector<Product>::iterator qwe = (*it).begin(); qwe!=(*it).end(); qwe++)
+			{
+				cout<<(*qwe).name<<" ";
+			}
+			cout<<endl;
+		}
+	}
+	
+	vector <Set> zbior1;
+	vector <double> wsparcie;
+	
+	int plus=0; 
+	double wsp;
+	
+	bool flag;
+	
+	for (int i = 0; i<ileProduct; i++)
+	{
+		plus = 0;
+		for (list <vector<Product> >::iterator iter=global.begin(); iter!=global.end(); iter++)
+		{
+			for (vector<Product>::iterator qwe = (*iter).begin(); qwe!=(*iter).end(); qwe++)
+			{
+				if ((LP[i]==(*qwe).name))
+				{
+					plus++;
+					break;
+				}
+			}
+		}
+		Set productZ1;
+		productZ1.zestaw.push_back(LP[i]);
+		productZ1.ilosc = plus;
+		wsp = (productZ1.ilosc/ileKosz);
+		if (wsp>minSup)
+		{
+			wsparcie.push_back(wsp);
+			zbior1.push_back(productZ1);
+		}
+	}
+	
+	
+	
+	int forVec = 0;
+	/*
+	for (vector <Set>::iterator it = zbior1.begin(); it!=zbior1.end(); it++)
+	{
+		for(vector<string>::iterator iter = (*it).zestaw.begin(); iter!=(*it).zestaw.end(); iter++)
+		cout<<endl<<(*iter);
+		cout<<"  -  "<<(*it).ilosc<<"  --  "<<wsparcie[forVec];
+		forVec++;
+	}
+	for (vector <double>::iterator it = wsparcie.begin(); it!=wsparcie.end(); it++)
+	{
+		cout<<endl<<*it;
+	}
+	*/
+	vector <Set> zbior2;
+	double wsp2;
+	vector <double> wsparcie2;
+	
+	
+	for (vector <Set>::iterator it = zbior1.begin(); it!=zbior1.end()-1; it++)
+	{
+		vector <Set>::iterator itera = it+1;
+		for(; itera!=zbior1.end(); itera++)
+		{
+			plus = 0;
+			for (list <vector<Product> >::iterator iter=global.begin(); iter!=global.end(); iter++)
+			{
+				for (vector<Product>::iterator qwe = (*iter).begin(); qwe!=(*iter).end(); qwe++)
+				{
+					if ((*it).zestaw[0]==(*qwe).name)
+					{
+						for (vector<Product>::iterator ewq = (*iter).begin(); ewq!=(*iter).end(); ewq++)
+						{
+							if((*itera).zestaw[0]==(*ewq).name)
+							{
+								plus++; 
+								flag = true;
+								break;
+							}
+						}
+						if (flag=true){break;}	
+					}
+				}
+			}
+			Set productZ1;
+			productZ1.zestaw.push_back((*it).zestaw[0]);
+			productZ1.zestaw.push_back((*itera).zestaw[0]);
+			productZ1.ilosc = plus;
+			wsp2 = (productZ1.ilosc/ileKosz);
+			if (wsp2>minSup)
+			{
+				wsparcie2.push_back(wsp2);
+				zbior2.push_back(productZ1);
+			}
+		}
+	}
+	forVec = 0;
+	/*
+	for (vector <Set>::iterator it = zbior2.begin(); it!=zbior2.end(); it++)
+	{
+		cout<<endl;
+		for(vector<string>::iterator iter = (*it).zestaw.begin(); iter!=(*it).zestaw.end(); iter++)
+		cout<<(*iter)<<" ";
+		cout<<" -  "<<(*it).ilosc<<"  --  "<<wsparcie2[forVec];
+		forVec++;
+	}
+	*/
+	
+	vector <Set> zbior3;
+	double uf;
+	vector <double> ufnosc;
+	
+	for (vector <Set>::iterator it = zbior2.begin(); it!=zbior2.end(); it++)
+	{
+		for(vector <Set>::iterator itera = zbior1.begin(); itera!=zbior1.end(); itera++)
+		{
+			if((*itera).zestaw[0]!=(*it).zestaw[0]&&(*itera).zestaw[0]!=(*it).zestaw[1])
+			{
+				plus = 0;
+				for (list <vector<Product> >::iterator iter=global.begin(); iter!=global.end(); iter++)
+				{
+					for (vector<Product>::iterator qwe = (*iter).begin(); qwe!=(*iter).end(); qwe++)
+					{
+						if ((*it).zestaw[0]==(*qwe).name)
+						{
+							for (vector<Product>::iterator ewq = (*iter).begin(); ewq!=(*iter).end(); ewq++)
+							{
+								if((*itera).zestaw[0]==(*ewq).name)
+								{
+									for (vector<Product>::iterator wqe = (*iter).begin(); wqe!=(*iter).end(); wqe++)
+									{
+										if((*it).zestaw[1]==(*wqe).name)
+										{
+											plus++;
+											flag=true;
+											break;
+										}
+									}
+									if (flag=true){break;}
+								}
+							}
+							if (flag=true){break;}	
+						}
+					}
+				}
+				Set productZ1;
+				productZ1.zestaw.push_back((*it).zestaw[0]);
+				productZ1.zestaw.push_back((*it).zestaw[1]);
+				productZ1.zestaw.push_back((*itera).zestaw[0]);
+				productZ1.ilosc = plus;
+				uf = (productZ1.ilosc/((*it).ilosc));
+				if (uf>minCon)
+				{
+					ufnosc.push_back(uf);
+					zbior3.push_back(productZ1);
+				}
+			}
+		}
+	}
+	
+	forVec = 0;
+	cout<<"\n----------------------------------\n";
+	for (vector <Set>::iterator it = zbior3.begin(); it!=zbior3.end(); it++)
+	{
+		cout<<endl<<(*it).zestaw[0]<<" + "<<(*it).zestaw[1]<<" -> "<<(*it).zestaw[2];
+		cout<<"( "<<ufnosc[forVec]*100<<" %)";
+		forVec++;
+	}
+	
+	return 0;
+}
