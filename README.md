@@ -1,9 +1,9 @@
 # Algorytmy-i-struktury-danych
-Implementacja algorytmów
--Analiza koszykowa
--Wieże Hanoi
--Labirynt
--Sortowanie metodą quicksort
--Lista jednokierunkowa
--Problem plecakowy (zachłanny, dynamiczny)
+Implementacja algorytmów:<br />
+-Analiza koszykowa<br />
+-Wieże Hanoi<br />
+-Labirynt<br />
+-Sortowanie metodą quicksort<br />
+-Lista jednokierunkowa<br />
+-Problem plecakowy (zachłanny, dynamiczny)<br />
 -Drzewo BST
