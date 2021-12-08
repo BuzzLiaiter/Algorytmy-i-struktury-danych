@@ -1,0 +1,400 @@
+#include <iostream>
+#include <cstdlib>
+#include <windows.h>
+#include <ctime>
+
+using namespace std;
+
+double wartosc = 0;
+double poziom = 0;
+
+double wartosc2 = 0;
+double poziom2 = 0;
+
+int **wartosci;
+int **numery;
+
+//                                       		STRUKTURA PRZEDMIOTU
+
+struct Przedmiot{
+	double cena;
+	int waga;
+	int ilosc;
+	Przedmiot()
+	{
+		this->cena = 0;
+		this->waga = 0;
+		this->ilosc = 0;
+	}
+};
+
+//                                             CZAS
+
+void setTime (SYSTEMTIME pocz, SYSTEMTIME kon)
+{
+    if(kon.wMilliseconds<pocz.wMilliseconds)
+    {
+        kon.wMilliseconds = kon.wMilliseconds+1000;
+        kon.wSecond = kon.wSecond-1;
+    }
+    if (kon.wSecond<pocz.wSecond)
+    {
+        kon.wSecond = kon.wSecond+60;
+        kon.wMinute = kon.wMinute - 1;
+    }
+    if (kon.wMinute<pocz.wMinute)
+    {
+        kon.wMinute = kon.wMinute + 60;
+        kon.wHour = kon.wHour -1;
+    }
+    if (kon.wHour<pocz.wMilliseconds)
+    {
+        kon.wHour = kon.wHour + 24;
+        kon.wDay = kon.wDay - 1;
+    }
+    cout<<"\nCzas: "<<kon.wSecond - pocz.wSecond<<" sekund " <<kon.wMilliseconds - pocz.wMilliseconds<<" milisekund\n";
+}
+
+void porTime (SYSTEMTIME pocz, SYSTEMTIME kon, SYSTEMTIME pocz2, SYSTEMTIME kon2)
+{
+	int sec;
+	int mSec;
+	sec = (kon.wSecond - pocz.wSecond)-(kon2.wSecond - pocz2.wSecond);
+	if (sec<0)
+	{
+		cout<<"\n Metoda zachlanna jest szybsza\n";
+	}
+	else if(sec>0)
+	{
+		cout<<"\n Metoda dynamiczna jest szybsza\n";
+	}
+	else if (sec==0)
+	{
+		mSec=(kon.wMilliseconds - pocz.wMilliseconds)-(kon2.wMilliseconds - pocz2.wMilliseconds);
+		if (mSec<0)
+		{
+			cout<<"\n Metoda zachlanna jest szybsza\n";
+		}
+		else if(mSec>0)
+		{
+			cout<<"\n Metoda dynamiczna jest szybsza\n";
+		}
+		else
+		{
+			cout<<"\n Metoda dynamiczna jest tak samo szybka jak Metoda zachlanna \n";
+		}
+	}
+}
+
+//                                          WYPISZ
+
+void wypiszIlosc(int*sztuk, int ilPrzed)                        	//funkcja wypisujaca ilosc przedmiotow
+{
+	cout<<endl;
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"----";
+	}
+	cout<<endl;
+
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"| "<<i+1<<" ";
+		if (i == ilPrzed-1)
+		{
+			cout<<"|";
+		}
+	}
+	cout<<endl;
+
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"| "<<sztuk[i]<<" ";
+		if (i == ilPrzed-1)
+		{
+			cout<<"|";
+		}
+	}
+	cout<<endl;
+
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"----";
+	}
+	cout<<endl;
+}
+
+void wypiszIloscDyn(int*sztuk, int ilPrzed)                        	//funkcja wypisujaca ilosc przedmiotow (dynamiczny)
+{
+	cout<<endl;
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"----";
+	}
+	cout<<endl;
+
+	for (int i = 1; i<=ilPrzed; i++)
+	{
+		cout<<"| "<<i<<" ";
+		if (i == ilPrzed)
+		{
+			cout<<"|";
+		}
+	}
+	cout<<endl;
+
+	for (int i = 1; i<=ilPrzed; i++)
+	{
+		cout<<"| "<<sztuk[i]<<" ";
+		if (i == ilPrzed)
+		{
+			cout<<"|";
+		}
+	}
+	cout<<endl;
+
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"----";
+	}
+	cout<<endl;
+}
+
+void wypiszTabeli(int ilPrzed, int pojemnosc)
+{
+	cout<<"\n\tTABELA 1 - WARTOSCI\n";
+	for (int i = 1; i<=ilPrzed; i++)
+	{
+		for (int j = 1; j<=pojemnosc; j++)
+		{
+			if(wartosci[i][j]<10)
+				cout<<wartosci[i][j]<<"  ";
+			else
+				cout<<wartosci[i][j]<<" ";
+		}
+		cout<<endl;
+	}
+	cout<<"\n\tTABELA 2 - NUMERY\n";
+	for (int i = 1; i<=ilPrzed; i++)
+	{
+		for (int j = 1; j<=pojemnosc; j++)
+		{
+			cout<<numery[i][j]<<"  ";
+		}
+		cout<<endl;
+	}
+}
+
+
+
+//                                        PLECAK ZACHLANNY
+
+void sortOplac (Przedmiot* tab, int* pos, int ilPrzed)        //(najbardziej oplacalne przedmioty)
+{
+	double temp;
+	for (int i = 0; i < ilPrzed-1; i++)
+	{
+		for (int j = 0; j < ilPrzed - i - 1; j++)
+		{
+			if(tab[j].cena/tab[j].waga<=tab[j+1].cena/tab[j+1].waga)
+			{
+				swap(tab[j].waga,tab[j+1].waga);
+				swap(tab[j].cena,tab[j+1].cena);
+				swap(tab[j].ilosc,tab[j+1].ilosc);
+				swap(pos[j],pos[j+1]);
+			}
+		}
+	}
+}
+
+int* zapakuj(Przedmiot* tab, int ilPrzed, int pojemnosc)   //funkcja pakowania
+{
+	poziom = 0;
+	wartosc = 0;
+	int* pos = new int [ilPrzed];
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		pos[i] = i;
+	}
+
+	sortOplac (tab, pos, ilPrzed);
+
+	int* sztuk = new int[ilPrzed];
+	int ileSztuk;
+
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		ileSztuk = pojemnosc/tab[i].waga;
+
+		if (ileSztuk>tab[i].ilosc)
+		{
+			sztuk[pos[i]] = tab[i].ilosc;
+		}
+
+		else if(ileSztuk<=tab[i].ilosc)
+		{
+			sztuk[pos[i]] = ileSztuk;
+		}
+
+		pojemnosc -= sztuk[pos[i]]*tab[i].waga;
+		wartosc += sztuk[pos[i]]*tab[i].cena;
+		poziom += sztuk[pos[i]]*tab[i].waga;
+	}
+	delete[] pos;
+	return sztuk;
+}
+
+//                                     PLECAK DYNAMICZNY
+
+int** utworzTabele(int w, int h){
+	int** tab = new int*[h];
+	for(int i = 0; i <h; i++){
+		tab[i] = new int[w];
+		for(int j = 0; j < w; j++){
+			tab[i][j] = 0;
+		}
+	}
+	return tab;
+}
+
+void usunTabele(int** tab, int h){
+	for(int i = 0; i < h; i++){
+		delete[] tab[i];
+	}
+	delete[] tab;
+}
+
+int* zapakujDyn(Przedmiot* tab, int ilPrzed, int pojemnosc )
+{
+	wartosci = utworzTabele(pojemnosc+1, ilPrzed+1);
+	numery = utworzTabele(pojemnosc+1, ilPrzed+1);
+
+	int licznik;
+
+	for (int i = 1; i<=ilPrzed; i++)
+	{
+		licznik = 1;
+		for (int j = 1; j<=pojemnosc; j++)
+		{
+			if((j>=tab[i].waga)&&(wartosci[i-1][j]<wartosci[i][j-tab[i].waga]+tab[i].cena))  //des tut
+			{
+				wartosci[i][j] = wartosci[i][j-tab[i].waga]+tab[i].cena;
+				numery[i][j] = i;
+				//if (wartosci[i][j]-wartosci[i-1][j]>=tab[i].cena*tab[i].ilosc)
+
+			}
+			else
+			{
+				wartosci[i][j] = wartosci[i-1][j];
+				numery[i][j] = numery[i-1][j];
+			}
+		}
+	}
+
+	int* sztuk2 = new int[ilPrzed+1];
+
+	for (int i = 0; i<=ilPrzed; i++)
+	{
+		sztuk2[i] = 0;
+	}
+
+	int k = pojemnosc;
+
+	while (k>0)
+	{
+		if (numery[ilPrzed][k] == 0)
+		{
+			k--;
+		}
+		else
+		{
+			sztuk2[numery[ilPrzed][k]]++;
+			k-=tab[numery[ilPrzed][k]].waga;
+		}
+	}
+	for (int i=0; i<=ilPrzed; i++)
+	{
+		wartosc2+=sztuk2[i]*tab[i].cena;
+		poziom2+=sztuk2[i]*tab[i].waga;
+	}
+
+	return sztuk2;
+}
+
+int main ()
+{
+	SYSTEMTIME pocz, kon;
+	SYSTEMTIME pocz2, kon2;
+	int ilPrzed;
+	int pojemnosc;
+
+	cout<<"\n Podaj pojemnosc plecaka: ";
+	cin>>pojemnosc;
+	cout<<"\n Podaj ilosc przedmiotow: ";
+	cin>>ilPrzed;
+
+
+	Przedmiot *plecak = new Przedmiot[ilPrzed];
+	for (int i = 0; i<ilPrzed; i++)
+	{
+		cout<<"\nPrzedmiot "<<i+1<<": ";
+		cin>>plecak[i].cena>>plecak[i].waga>>plecak[i].ilosc;
+	}
+
+	Przedmiot *plecak2 = new Przedmiot[ilPrzed+1];
+	for (int i = 1; i<=ilPrzed; i++)
+	{
+		plecak2[i].cena = plecak[i-1].cena;
+		plecak2[i].waga = plecak[i-1].waga;
+		plecak2[i].ilosc = plecak[i-1].ilosc;
+	}
+
+	cout<<"\n\n\n+++++Metoda zachlanna++++++++++++++\n";
+	GetSystemTime(&pocz);
+	int* sztuk = zapakuj(plecak, ilPrzed, pojemnosc);
+	wypiszIlosc(sztuk, ilPrzed);
+	GetSystemTime(&kon);
+	cout<<"\nWartosc plecaka: "<<wartosc;
+	cout<<"\nPoziom upakowania: "<<poziom;
+	setTime (pocz, kon);
+
+	cout<<"\n\n\n+++++Metoda dynamiczna+++++++++++++++++\n";
+	GetSystemTime(&pocz2);
+	int* sztuk2 = zapakujDyn(plecak2, ilPrzed, pojemnosc);
+	wypiszIloscDyn(sztuk2, ilPrzed);
+	GetSystemTime(&kon2);
+	cout<<"\nWartosc plecaka: "<<wartosc2;
+	cout<<"\nPoziom upakowania: "<<poziom2;
+	setTime (pocz2, kon2);
+	cout<<endl;
+
+
+
+	cout<<"\nCzy wyswietlic tablice pomocnicze? Tak - '1', Nie - '0'\n";
+	int option;
+	cin>>option;
+	if (option == 1)
+	{
+		wypiszTabeli(ilPrzed, pojemnosc);
+	}
+
+	porTime(pocz, kon, pocz2, kon2);
+
+	if(poziom-poziom2>0)
+	{
+		cout<<"\nMetoda zachlanna jest efektywniejsza\n";
+	}
+	else if(poziom-poziom2<0)
+	{
+		cout<<"\nMetoda dynamiczna jest efektywniejsza\n";
+	}
+	else if (poziom-poziom2==0)
+	{
+		cout<<"\nObie sa tak samo efektywny\n";
+	}
+
+	delete[] plecak, sztuk, sztuk2, plecak2;
+	usunTabele(wartosci, ilPrzed);
+	usunTabele(numery, ilPrzed);
+	return 0;
+}
